@@ -84,7 +84,7 @@ class Subscribers extends Interaction
                         }
                     }
                     if ($valid) {
-                        printf('%s%s: %s = %s%s', static::URL, $url, $property, $html, PHP_EOL);
+                        printf('%s%s: %s = %s%s', static::FULL_URL, $url, $property, $html, PHP_EOL);
                     }
                 }
             }

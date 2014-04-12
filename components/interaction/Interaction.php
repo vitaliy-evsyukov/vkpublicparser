@@ -12,6 +12,8 @@ abstract class Interaction extends Component
 {
     const URL = 'http://m.vk.com';
 
+    const FULL_URL = 'http://vk.com';
+
     protected static $debugCounter = 0;
 
     protected $entityType;
