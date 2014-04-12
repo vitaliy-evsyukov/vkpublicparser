@@ -1,0 +1,4 @@
+vkpublicparser
+==============
+
+Vkontakte public parser
