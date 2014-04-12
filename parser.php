@@ -16,16 +16,23 @@ try {
     $config->setFileName(__DIR__ . DS . 'config.php');
     $application = new \components\system\Application($config);
     $application->get('login')->login();
-    $longopts = array(
+    $longopts  = array(
         "group::",
         "politics::",
         "position::",
     );
-    $options  = getopt('', $longopts);
-    $filters  = array();
+    $options   = getopt('', $longopts);
+    $filters   = array();
+    $hasFilter = false;
     foreach ($longopts as $opt) {
         $opt           = str_replace(':', '', $opt);
         $filters[$opt] = isset($options[$opt]) ? (string) $options[$opt] : null;
+        if (!is_null($filters[$opt])) {
+            $hasFilter = true;
+        }
+    }
+    if (!$hasFilter) {
+        throw new Exception('Нет ни одного фильтра. Доступные фильтры: ' . implode(', ', array_keys($filters)));
     }
     $groupId = isset($options['group']) ? $options['group'] : 0;
     if (!is_numeric($groupId)) {

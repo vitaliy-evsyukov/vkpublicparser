@@ -23,7 +23,7 @@ $config = array(
         ),
         'curl'   => array(
             'class'     => '\\components\\interaction\\Curl',
-            'cookieJar' => 'cookie.txt',
+            'cookieJar' => __DIR__ . DS . 'cookie.txt',
             'userAgent' => 'Opera/9.80 (Android; Opera Mini/7.5.33361/31.1350; U; en) Presto/2.8.119 Version/11.11'
         ),
         'cache'  => array(
