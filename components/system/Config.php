@@ -80,8 +80,7 @@ class Config extends Component
             };
             $result[$class] = array(
                 'config' => array_keys($config),
-                'value'  => $value,
-                ''
+                'value'  => $value
             );
         }
         foreach ($config as $key => $value) {

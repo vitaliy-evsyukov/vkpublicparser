@@ -1,10 +1,16 @@
 <?php
 
 $config = array(
-    'services' => array(
+    // уровень вывода отладочной информации, от 0 до 3
+    'verbosity'  => 3,
+    // время ожидания перед следующим запросов, от 2 секунд
+    'maxTimeout' => 3,
+    'services'   => array(
         'login'  => array(
             'class'     => '\\components\\interaction\\Login',
+            // логин
             'login'     => 'username',
+            // пароль
             'password'  => 'password',
             'transport' => 'services.curl'
         ),

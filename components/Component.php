@@ -4,6 +4,7 @@
 namespace components;
 
 
+use components\system\Application;
 use components\system\Config;
 
 abstract class Component
@@ -17,11 +18,21 @@ abstract class Component
 
     protected $config = array();
 
+    /**
+     * @var Application
+     */
+    protected $application;
+
     public function __construct(Config $config = null)
     {
         if ($config) {
             $this->config = $config->getData();
         }
+    }
+
+    public function setApplication(Application $app)
+    {
+        $this->application = $app;
     }
 
     public function setConfig(array $config)
@@ -41,6 +52,7 @@ abstract class Component
         }
         if ($this->config[$name] instanceof \Closure) {
             $this->config[$name] = $this->config[$name]();
+            $this->config[$name]->setApplication($this->application);
         }
         return $this->config[$name];
     }
@@ -58,6 +70,7 @@ abstract class Component
         }
         $component = $this->config[$name]();
         $component->setContainer($this);
+        $component->setApplication($this);
         return $component;
     }
 } 

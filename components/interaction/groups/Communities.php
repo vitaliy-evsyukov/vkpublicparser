@@ -43,6 +43,7 @@ class Communities extends Interaction
 
     protected function parseEntity(\DOMDocument $dom, $url, $content)
     {
+        $this->checkContent($content);
         if (!@$dom->loadHTML($content)) {
             throw new \LogicException('Не удалось распарсить страницу сообщества');
         }

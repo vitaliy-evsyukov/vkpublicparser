@@ -5,17 +5,20 @@ namespace components\interaction;
 
 
 use components\Component;
+use components\system\Application;
 use components\system\Config;
 
 abstract class Interaction extends Component
 {
     const URL = 'http://m.vk.com';
 
-    protected static $curl;
+    protected static $debugCounter = 0;
 
     protected $entityType;
 
     protected $cacheSuffix;
+
+    protected $timeout;
 
     public function __construct(Config $config = null)
     {
@@ -23,9 +26,28 @@ abstract class Interaction extends Component
         $this->cacheSuffix = '_' . str_replace('\\', '_', strtolower(get_class($this)));
     }
 
-    protected function debug($message)
+    public function setApplication(Application $app)
     {
-        $this->output($message, STDERR);
+        parent::setApplication($app);
+        if (!$this->timeout) {
+            $this->timeout = max($this->application->getParameter('maxTimeout'), 2);
+        }
+    }
+
+    protected function debug($message, $level = 1)
+    {
+        if ($level <= $this->application->getParameter('verbosity')) {
+            $message = str_repeat(' ', ($level - 1) * 2) . $message;
+            if (!(++static::$debugCounter % 50)) {
+                $message .= sprintf(
+                    '%sПотребление памяти: %s, время работы: %.2f секунд',
+                    PHP_EOL,
+                    $this->getMemoryUsage(),
+                    microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']
+                );
+            }
+            $this->output($message, STDERR);
+        }
     }
 
     protected function result($message)
@@ -96,13 +118,14 @@ abstract class Interaction extends Component
                         if (!$cache->isProcessed($cacheKey)) {
                             $data = $cache->load($cacheKey);
                             if (!$data) {
-                                $time = rand(1, 10);
-                                $this->debug(sprintf('Засыпаем на %d секунд и грузим %s', $time, $href));
+                                $time = rand(1, $this->timeout);
+                                $this->debug(sprintf('Засыпаем на %d секунд и грузим %s', $time, $href), 3);
                                 sleep($time);
-                                $cache->save($cacheKey, $this->loadEntity($dom, $href));
                             } else {
                                 $this->parseEntity($dom, $href, $data);
                             }
+                            // всегда сохраняем в кеш - продлевает время жизни и устанавливает флаг процессинга
+                            $cache->save($cacheKey, $this->loadEntity($dom, $href));
                         } else {
                             $this->debug('Уже обработали ' . $href);
                         }
@@ -112,11 +135,30 @@ abstract class Interaction extends Component
             if (!$process) {
                 break;
             } else {
-                $time = rand(1, 10);
-                $this->debug(sprintf('Засыпаем на %d секунд и грузим %s', $time, $process));
+                $time = rand(1, $this->timeout);
+                $this->debug(sprintf('Засыпаем на %d секунд и грузим %s', $time, $process), 2);
                 sleep($time);
                 $this->loadPage($dom, $process);
             }
         }
+    }
+
+    protected function checkContent($content) {
+        if (preg_match('/Вы попытались загрузить более одной однотипной страницы/', $content)) {
+            throw new \Exception('Получен БАН');
+        }
+    }
+
+    private function getMemoryUsage()
+    {
+        $memUsage = memory_get_peak_usage(true);
+        $base     = log($memUsage, 1024);
+        $data     = array('', 'KB', 'MB', 'GB', 'TB');
+        $suffix   = $data[(int) floor($base)];
+        return sprintf(
+            '%.2f %s',
+            pow(1024, $base - floor($base)),
+            $suffix
+        );
     }
 }

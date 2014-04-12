@@ -45,7 +45,8 @@ class Cache extends Interaction
                         'Дата модификации файла %s меньше %s, стираем кеш',
                         date('d.m.Y H:i:s', $mtime),
                         date('d.m.Y H:i:s', $border)
-                    )
+                    ),
+                    3
                 );
                 unlink($fileName);
             } else {
@@ -55,12 +56,12 @@ class Cache extends Interaction
         }
         $this->debug(
             sprintf(
-                'Для ключа %s загрузили %sпустой кеш (%s) %s',
+                'Для ключа %s загрузили %sпустой кеш (%s)',
                 $key,
                 $content ? 'не' : '',
-                $exists ? 'из файла' : 'файла нет',
-                $fileName
-            )
+                $exists ? 'из файла' : 'файла нет'
+            ),
+            2
         );
         return $content ? $content : null;
     }
@@ -70,6 +71,6 @@ class Cache extends Interaction
         $fileName = $this->createFile($key);
         file_put_contents($fileName, $value);
         $this->processed[$key] = '1';
-        $this->debug(sprintf('Для ключа %s сохранили кеш в файл %s', $key, $fileName));
+        $this->debug(sprintf('Для ключа %s сохранили кеш в файл', $key), 2);
     }
 }
