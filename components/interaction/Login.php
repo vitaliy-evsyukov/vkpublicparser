@@ -8,7 +8,7 @@ class Login extends Interaction
 {
     public function login()
     {
-        $account  = ['email' => $this->login, 'pass' => $this->password, 'submit' => 'Войти'];
+        $account  = array('email' => $this->login, 'pass' => $this->password, 'submit' => 'Войти');
         $startUrl = 'https://m.vk.com';
         /**
          * @var Curl $curl

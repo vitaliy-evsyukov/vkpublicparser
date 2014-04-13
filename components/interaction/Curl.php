@@ -26,7 +26,7 @@ class Curl extends Component
             $this->curl = curl_init();
             curl_setopt_array(
                 $this->curl,
-                [
+                array(
                     CURLOPT_COOKIEJAR      => $cookieFile,
                     CURLOPT_COOKIEFILE     => $cookieFile,
                     CURLOPT_SSL_VERIFYHOST => false,
@@ -34,7 +34,7 @@ class Curl extends Component
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_USERAGENT      => $this->userAgent,
                     CURLOPT_FOLLOWLOCATION => 1,
-                ]
+                )
             );
         }
     }
