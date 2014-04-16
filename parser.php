@@ -1,5 +1,6 @@
 <?php
 
+date_default_timezone_set('Europe/Moscow');
 define('DS', DIRECTORY_SEPARATOR);
 
 try {

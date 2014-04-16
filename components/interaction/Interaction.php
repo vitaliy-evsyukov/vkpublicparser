@@ -14,6 +14,12 @@ abstract class Interaction extends Component
 
     const FULL_URL = 'http://vk.com';
 
+    const MIN_HIGH_TIMEOUT = 3;
+
+    const MAX_HIGH_TIMEOUT = 6;
+
+    const SECOND_MICRO = 1E6;
+
     protected static $debugCounter = 0;
 
     protected $entityType;
@@ -22,18 +28,24 @@ abstract class Interaction extends Component
 
     protected $timeout;
 
+    protected $delay;
+
+    protected $delayIncrement = -1E5;
+
     public function __construct(Config $config = null)
     {
         parent::__construct($config);
         $this->cacheSuffix = '_' . str_replace('\\', '_', strtolower(get_class($this)));
+        $this->delay       = static::MIN_HIGH_TIMEOUT * static::SECOND_MICRO;
     }
 
     public function setApplication(Application $app)
     {
         parent::setApplication($app);
         if (!$this->timeout) {
-            $this->timeout = max($this->application->getParameter('maxTimeout'), 2);
+            $this->timeout = max($this->application->getParameter('maxTimeout'), static::MIN_HIGH_TIMEOUT);
         }
+        $this->timeout *= static::SECOND_MICRO;
     }
 
     protected function debug($message, $level = 1)
@@ -92,6 +104,24 @@ abstract class Interaction extends Component
         $this->showPager($dom, $url);
     }
 
+    protected function loadTimeout($url)
+    {
+        $delay    = rand($this->delay, $this->timeout);
+        $pDelay   = $delay / static::SECOND_MICRO;
+        $pTimeout = $this->delay / static::SECOND_MICRO;
+        if (($pTimeout <= static::MIN_HIGH_TIMEOUT) || ($pTimeout >= static::MAX_HIGH_TIMEOUT)) {
+            $this->delayIncrement *= -1;
+            $this->debug(
+                sprintf('Текущий минимальный таймаут равен %.2f секунд, меняем в обратную сторону', $pTimeout),
+                4
+            );
+        }
+        $this->delay += $this->delayIncrement;
+        $this->timeout += $this->delayIncrement;
+        $this->debug(sprintf('Засыпаем на %.2f секунд и грузим %s', $pDelay, $url));
+        usleep($delay);
+    }
+
     protected function loadEntity(\DOMDocument $dom, $href)
     {
         return array();
@@ -120,14 +150,13 @@ abstract class Interaction extends Component
                         if (!$cache->isProcessed($cacheKey)) {
                             $data = $cache->load($cacheKey);
                             if (!$data) {
-                                $time = rand(1, $this->timeout);
-                                $this->debug(sprintf('Засыпаем на %d секунд и грузим %s', $time, $href), 3);
-                                sleep($time);
+                                $this->loadTimeout($href);
+                                $data = $this->loadEntity($dom, $href);
                             } else {
                                 $this->parseEntity($dom, $href, $data);
                             }
                             // всегда сохраняем в кеш - продлевает время жизни и устанавливает флаг процессинга
-                            $cache->save($cacheKey, $this->loadEntity($dom, $href));
+                            $cache->save($cacheKey, $data);
                         } else {
                             $this->debug('Уже обработали ' . $href);
                         }
@@ -137,15 +166,14 @@ abstract class Interaction extends Component
             if (!$process) {
                 break;
             } else {
-                $time = rand(1, $this->timeout);
-                $this->debug(sprintf('Засыпаем на %d секунд и грузим %s', $time, $process), 2);
-                sleep($time);
+                $this->loadTimeout($process);
                 $this->loadPage($dom, $process);
             }
         }
     }
 
-    protected function checkContent($content) {
+    protected function checkContent($content)
+    {
         if (preg_match('/Вы попытались загрузить более одной однотипной страницы/', $content)) {
             throw new \Exception('Получен БАН');
         }

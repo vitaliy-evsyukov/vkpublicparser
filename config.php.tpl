@@ -1,10 +1,10 @@
 <?php
 
 $config = array(
-    // уровень вывода отладочной информации, от 0 до 3
-    'verbosity'  => 3,
-    // время ожидания перед следующим запросов, от 2 секунд
-    'maxTimeout' => 3,
+    // уровень вывода отладочной информации, от 0 до 4
+    'verbosity'  => 4,
+    // время ожидания перед следующим запросов, от 3 секунд
+    'maxTimeout' => 4,
     'services'   => array(
         'login'  => array(
             'class'     => '\\components\\interaction\\Login',
@@ -17,6 +17,11 @@ $config = array(
         'groups' => array(
             'subscribers' => array(
                 'class'     => '\\components\\interaction\\groups\\Subscribers',
+                'transport' => 'services.curl',
+                'cache'     => 'services.cache'
+            ),
+            'communities' => array(
+                'class'     => '\\components\\interaction\\groups\\Communities',
                 'transport' => 'services.curl',
                 'cache'     => 'services.cache'
             )
